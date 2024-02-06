@@ -1,161 +1,93 @@
+const { Genre, validateGenre } = require('../models/genre');
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
-const Joi = require('joi');
 router.use(express.json());
 
-
-mongoose.connect('mongodb://localhost/vidly_project')
-    .then(() => console.log('Connected to database Successfully...'))
-    .catch((err) => console.log('Error While Connecting to Database!', err));
-
-const genreSchema = mongoose.Schema({
-    genreName: {
-        type: String,
-        required: true,
-        min: 5,
-        max: 20,
-        enum: ['Action', 'Horror', 'Comedy', 'Biography', 'Documentary', 'Suspense', 'Thriller', 'Adventure', 'Drama'],
-    },
-    date: { type: Date, default: Date.now() },
-    movieCount: Number,
-    isAvailable: Boolean
-});
-
-const Genre = mongoose.model('Genre', genreSchema);
-
-
-// const genres = [{
-//     id: 1,
-//     genreName: 'Action'
-// }];
-// genres.push({ id: 2, genreName: 'Horror' });
-// genres.push({ id: 3, genreName: 'Comedy' });
-
-router.get('/', (req, res) => {
-    async function getGenres() {
+router.get('/', async (req, res) => {
+    try {
         const genres = await Genre.find().sort('genreName').select('_id genreName movieCount date isAvailable');
         if (genres.length === 0) {
             return res.status(400).send('Genre is Not Exists!');
         }
         return res.send(genres);
     }
-    getGenres();
+    catch (error) {
+        return res.status(400).send(error.message);
+    }
 });
 
-router.get('/:genreName', (req, res) => {
-    // if (isEmpty(genres)) {
-    //     return res.status(400).send('Genre is Not Exists!');
-    // }
-    // const result = genres.find(g => g.genreName === req.params.name);
-    // if (!result) {
-    //     return res.send('Genre is Not in Collection!');
-    // }
-
+router.get('/:genreName', async (req, res) => {
     try {
-        async function findGenre() {
-            const result = await Genre.find({ genreName: req.params.genreName });
-            if (result.length === 0) {
-                return res.status(400).send('Following Genre is Not Available in Database');
-            }
-            return res.send(result);
+        const result = await Genre.find({ genreName: req.params.genreName });
+        if (result.length === 0) {
+            return res.status(400).send('Following Genre is Not Available in Database');
         }
-        findGenre();
+        return res.send(result);
     } catch (error) {
         return res.status(400).send(error.message);
     }
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     try {
-        async function addGenre() {
-            const result = validateGenre(req.body);
-            if (result.error) {
-                return res.status(400).send(result.error.details[0].message);
-            }
-            // const newGenre = {
-            //     id: genres.length + 1,
-            //     genreName: req.body.name
-            // }
-            // genres.push(newGenre);
+        const result = validateGenre(req.body);
+        if (result.error) {
+            return res.status(400).send(result.error.details[0].message);
+        }
+        const upResult = await Genre.find({ genreName: req.body.genreName });
+        if (upResult.length === 0) {
             const newGenre = new Genre({
                 genreName: req.body.genreName,
                 movieCount: parseInt(req.body.movieCount),
                 isAvailable: req.body.isAvailable
             });
-            const resultGenre = await newGenre.save();
+            const resultGenre = await newGenre.save().then((result) => result).catch((err) => err.message);
             return res.send(resultGenre);
         }
-        addGenre();
+        else {
+            return res.status(400).send({ message: "You can't add the provided Genre Because it is already in the Database, try to update it." });
+        }
     } catch (error) {
         return res.status(400).send(error.message);
     }
 });
 
-router.put('/:genreName', (req, res) => {
-    // if (isEmpty(genres)) {
-    //     return res.status(400).send('Genre is Not Exists!');
-    // }
-    // const result = genres.find(g => g.id === parseInt(req.params.id));
-    // if (!result) {
-    //     return res.send('Genre is Not in Collection!');
-    // }
-    // result.genreName = req.body.name;
-    // res.send(result);
+router.put('/:genreName', async (req, res) => {
     try {
-        async function updateGenre() {
-            // async function findGenre(){
-            //     const result = await Genre.find({ genreName: req.params.genreName});
-            //     if (result.length === 0) {
-            //         return res.status(400).send('Following Genre is Not Available in Database');
-            //     }
-            //     return res.send(result);
-            // }
-            // const genre = findGenre();
-            
-            const filter = { genreName: req.params.genreName };
-            const update = {
-                genreName: req.body.genreName,
-                movieCount: req.body.movieCount,
-                isAvailable: req.body.isAvailable
-            };
-            const option = { new: true };
-    
-            const upGenre = await Genre.findOneAndUpdate(filter, update, option);
-    
+        const filter = { genreName: req.params.genreName };
+        const update = {
+            movieCount: req.body.movieCount,
+            isAvailable: req.body.isAvailable
+        };
+        const option = { new: true };
+        const upGenre = await Genre.findOneAndUpdate(filter, update, option);
+        if (!upGenre) {
+            return res.status(400).send("Provided Genre is Not in the Database.");
+        }
+        else {
             return res.send(upGenre);
         }
-        updateGenre();
     } catch (error) {
         return res.status(400).send(error.message);
     }
 });
 
-router.delete('/:id', (req, res) => {
-    if (isEmpty(genres)) {
-        return res.status(400).send('Genre is Not Exists!');
+router.delete('/:genreName', async (req, res) => {
+    try {
+        const filter = { genreName: req.params.genreName };
+        const option = { new: true };
+        const result = await Genre.findOneAndDelete(filter, option);
+        if (!result) {
+            return res.status(400).send("Provided Genre is Not in the Database.");
+        }
+        else {
+            return res.send(result);
+        }
     }
-    const result = genres.find(g => g.id === parseInt(req.params.id));
-    if (!result) {
-        return res.send('Genre is Not in Collection!');
+    catch (error) {
+        return res.status(400).send(error.message);
     }
-    const index = genres.indexOf(result);
-    genres.splice(index, 1);
-    res.send(result);
 });
-
-
-function isEmpty(genre) {
-    return !genre.length > 0;
-}
-
-function validateGenre(genre) {
-    const schema = Joi.object({
-        genreName: Joi.string().min(3).required(),
-        movieCount: Joi.number().required().min(1),
-        isAvailable: Joi.boolean().required()
-    })
-    return schema.validate(genre);
-}
 
 module.exports = router;
