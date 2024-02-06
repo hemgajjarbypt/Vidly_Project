@@ -1,4 +1,4 @@
-const { Genre, validateGenre } = require('../models/genre');
+const { Genre, genreSchema, validateGenre } = require('../models/genre');
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
@@ -39,6 +39,7 @@ router.post('/', async (req, res) => {
         if (upResult.length === 0) {
             const newGenre = new Genre({
                 genreName: req.body.genreName,
+                date: Date.now(),
                 movieCount: parseInt(req.body.movieCount),
                 isAvailable: req.body.isAvailable
             });
