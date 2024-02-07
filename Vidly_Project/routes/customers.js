@@ -1,4 +1,5 @@
 const { Customer, validateCustomer } = require('../models/customer');
+const _ = require('lodash');
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
         }
         return res.send(result);
     } catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed!');
     }
 });
 
@@ -24,7 +25,7 @@ router.get('/:name', async (req, res) => {
         }
         return res.send(result);
     } catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed!');
     }
 });
 
@@ -42,13 +43,14 @@ router.post('/', async (req, res) => {
                 isGold: req.body.isGold
             });
             const resultCustomer = await newCustomer.save().then((result) => result).catch((err) => err.message);
-            return res.send(resultCustomer);
+
+            return res.send(_.pick(resultCustomer, ['_id', 'name', 'phone', 'isGold']));
         }
         else {
-            return res.status(400).send({ message: "You can't add the provided Customer Because it is already in the Database, try to update it." });
+            return res.status(400).send("You can't add the provided Customer Because it is already in the Database, try to update it.");
         }
     } catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed!');
     }
 });
 
@@ -65,10 +67,10 @@ router.put('/:name', async (req, res) => {
             return res.status(400).send("Provided Customer is Not in the Database.");
         }
         else {
-            return res.send(upCustomer);
+            return res.send(_.pick(upCustomer, ['_id', 'name', 'phone', 'isGold']));
         }
     } catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed!');
     }
 });
 
@@ -81,11 +83,11 @@ router.delete('/:name', async (req, res) => {
             return res.status(400).send("Provided Customer is Not in the Database.");
         }
         else {
-            return res.send(result);
+            return res.send(_.pick(result, ['_id', 'name', 'phone', 'isGold']));
         }
     }
     catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed!');
     }
 });
 

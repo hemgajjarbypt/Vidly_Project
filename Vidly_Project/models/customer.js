@@ -12,7 +12,8 @@ const customerSchema = mongoose.Schema({
         type: String,
         min: 10,
         max: 10,
-        required: true
+        required: true,
+        unique: true,
     },
     isGold: {
         type: Boolean,
@@ -33,3 +34,4 @@ function validateCustomer(customer) {
 
 module.exports.Customer = Customer;
 module.exports.validateCustomer = validateCustomer;
+module.exports.customerSchema = customerSchema;

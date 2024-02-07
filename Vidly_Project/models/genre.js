@@ -9,9 +9,14 @@ const genreSchema = mongoose.Schema({
         max: 20,
         enum: ['Action', 'Horror', 'Comedy', 'Biography', 'Documentary', 'Suspense', 'Thriller', 'Adventure', 'Drama'],
     },
-    date: { type: Date },
-    movieCount: Number,
-    isAvailable: Boolean
+    movieCount: {
+        type: Number,
+        default: 0
+    },
+    isAvailable: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const Genre = mongoose.model('Genre', genreSchema);
@@ -19,9 +24,8 @@ const Genre = mongoose.model('Genre', genreSchema);
 function validateGenre(genre) {
     const schema = Joi.object({
         genreName: Joi.string().min(5).required(),
-        date: Joi.date(),
-        movieCount: Joi.number().required().min(1),
-        isAvailable: Joi.boolean().required()
+        movieCount: Joi.number().min(0),
+        isAvailable: Joi.boolean()
     })
     return schema.validate(genre);
 }

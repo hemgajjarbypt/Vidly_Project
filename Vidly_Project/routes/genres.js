@@ -1,3 +1,6 @@
+const _ = require('lodash');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const { Genre, genreSchema, validateGenre } = require('../models/genre');
 const mongoose = require('mongoose');
 const express = require('express');
@@ -6,14 +9,13 @@ router.use(express.json());
 
 router.get('/', async (req, res) => {
     try {
-        const genres = await Genre.find().sort('genreName').select('_id genreName movieCount date isAvailable');
+        const genres = await Genre.find().sort('genreName').select('_id genreName movieCount isAvailable');
         if (genres.length === 0) {
-            return res.status(400).send('Genre is Not Exists!');
+            return res.status(400).send('Genre is Not Exists in Database!');
         }
         return res.send(genres);
-    }
-    catch (error) {
-        return res.status(400).send(error.message);
+    } catch (error) {
+        res.status(500).send('Something failed!');
     }
 });
 
@@ -23,13 +25,13 @@ router.get('/:genreName', async (req, res) => {
         if (result.length === 0) {
             return res.status(400).send('Following Genre is Not Available in Database');
         }
-        return res.send(result);
+        return res.send(_.pick(result[0], ['_id', 'genreName', 'movieCount', 'isAvailable']));
     } catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed!');
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
         const result = validateGenre(req.body);
         if (result.error) {
@@ -39,7 +41,6 @@ router.post('/', async (req, res) => {
         if (upResult.length === 0) {
             const newGenre = new Genre({
                 genreName: req.body.genreName,
-                date: Date.now(),
                 movieCount: parseInt(req.body.movieCount),
                 isAvailable: req.body.isAvailable
             });
@@ -47,10 +48,10 @@ router.post('/', async (req, res) => {
             return res.send(resultGenre);
         }
         else {
-            return res.status(400).send({ message: "You can't add the provided Genre Because it is already in the Database, try to update it." });
+            return res.status(400).send("You can't add the provided Genre Because it is already in the Database, try to update it.");
         }
     } catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed!');
     }
 });
 
@@ -74,7 +75,7 @@ router.put('/:genreName', async (req, res) => {
     }
 });
 
-router.delete('/:genreName', async (req, res) => {
+router.delete('/:genreName', [auth, admin], async (req, res) => {
     try {
         const filter = { genreName: req.params.genreName };
         const option = { new: true };
