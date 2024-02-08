@@ -1,1 +1,9 @@
 brew services start mongodb-community@4.4
+
+
+admin(false) : 
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWM0NzU1YmU5NjRkNGIxMzk5ZGUxNzQiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzA3MzczOTE1fQ.OndHnynZhKIqUVIFMFpRIQuO1bIElQx9TuQDvAGO27s
+
+
+admin (true) :
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWM0NmIyZDNhZDc3MmE1NTdiNDI4MGQiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3MDczNzEzMDl9.Q4WMt2d8NZwd1SwAmxJyjHZA6bMREzYkEx7_W9JbVA8

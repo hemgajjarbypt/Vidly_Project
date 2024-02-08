@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 router.use(express.json());
 
+//any user can see the genres
 router.get('/', async (req, res) => {
     try {
         const genres = await Genre.find().sort('genreName').select('_id genreName movieCount isAvailable');
@@ -19,6 +20,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+//any user can see the genre with title
 router.get('/:genreName', async (req, res) => {
     try {
         const result = await Genre.find({ genreName: req.params.genreName });
@@ -31,6 +33,7 @@ router.get('/:genreName', async (req, res) => {
     }
 });
 
+//only authenticated user which are in database can create genre
 router.post('/', auth, async (req, res) => {
     try {
         const result = validateGenre(req.body);
@@ -41,21 +44,22 @@ router.post('/', auth, async (req, res) => {
         if (upResult.length === 0) {
             const newGenre = new Genre({
                 genreName: req.body.genreName,
-                movieCount: parseInt(req.body.movieCount),
-                isAvailable: req.body.isAvailable
+                movieCount: (!req.body.movieCount)? 0 : req.body.movieCount,
+                isAvailable: (!req.body.isAvailable)? false : req.body.isAvailable
             });
             const resultGenre = await newGenre.save().then((result) => result).catch((err) => err.message);
-            return res.send(resultGenre);
+            return res.send(_.pick(resultGenre, ['_id', 'genreName', 'movieCount', 'isAvailable']));
         }
         else {
             return res.status(400).send("You can't add the provided Genre Because it is already in the Database, try to update it.");
         }
     } catch (error) {
-        return res.status(500).send('Something failed!');
-    }
+    return res.status(500).send('Something failed!');
+}
 });
 
-router.put('/:genreName', async (req, res) => {
+//only authenticated user which are in database can update genre with genreName
+router.put('/:genreName', auth, async (req, res) => {
     try {
         const filter = { genreName: req.params.genreName };
         const update = {
@@ -68,13 +72,14 @@ router.put('/:genreName', async (req, res) => {
             return res.status(400).send("Provided Genre is Not in the Database.");
         }
         else {
-            return res.send(upGenre);
+            return res.send(_.pick(upGenre, ['_id', 'genreName', 'movieCount', 'isAvailable']));
         }
     } catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send('Something failed.');
     }
 });
 
+//only admin user which are in database can delete genre with genreName
 router.delete('/:genreName', [auth, admin], async (req, res) => {
     try {
         const filter = { genreName: req.params.genreName };
@@ -84,11 +89,11 @@ router.delete('/:genreName', [auth, admin], async (req, res) => {
             return res.status(400).send("Provided Genre is Not in the Database.");
         }
         else {
-            return res.send(result);
+            return res.send(_.pick(result, ['_id', 'genreName', 'movieCount', 'isAvailable']));
         }
     }
     catch (error) {
-        return res.status(400).send(error.message);
+        return res.status(500).send("something failed");
     }
 });
 

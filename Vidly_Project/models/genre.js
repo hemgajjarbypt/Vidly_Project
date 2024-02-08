@@ -11,11 +11,9 @@ const genreSchema = mongoose.Schema({
     },
     movieCount: {
         type: Number,
-        default: 0
     },
     isAvailable: {
         type: Boolean,
-        default: false
     }
 });
 

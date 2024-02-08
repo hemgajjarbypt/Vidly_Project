@@ -8,8 +8,11 @@ module.exports = function (req, res, next) {
     try {
         const decoded = jwt.verify(token, 'jwtPrivateKey');
         req.user = decoded;
+        if (!req.user) {
+            return res.status(403).send('Access Denied!, You are Not a Authenticated User');
+        }
         next();
     } catch (error) {
-        res.status(400).send('Invalid Token!');
+        res.status(500).send(error);
     }
 }
