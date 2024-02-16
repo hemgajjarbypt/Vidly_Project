@@ -7,6 +7,12 @@ const movies = require('./routes/movies');
 const rentals = require('./routes/rentals');
 const users = require('./routes/users');
 const app = express();
+const cors = require('cors');
+
+app.use(cors({
+    origin: '*',
+    credentials: true
+}));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
