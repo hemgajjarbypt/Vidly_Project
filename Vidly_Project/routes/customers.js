@@ -7,7 +7,7 @@ router.use(express.json());
 
 router.get('/', async (req, res) => {
     try {
-        const result = await Customer.find().sort('name').select('_id name phone isGold');
+        const result = await Customer.find().sort('name').select('_id name email phone isGold');
         if (result.length === 0) {
             return res.status(400).send('Customer is Not Exists!');
         }
@@ -23,7 +23,7 @@ router.get('/:name', async (req, res) => {
         if (result.length === 0) {
             return res.status(400).send('Following Customer is Not Available in Database');
         }
-        return res.send(result);
+        return res.status(200).send(result);
     } catch (error) {
         return res.status(500).send('Something failed!');
     }
@@ -39,12 +39,13 @@ router.post('/', async (req, res) => {
         if (upResult.length === 0) {
             const newCustomer = new Customer({
                 name: req.body.name,
+                email: req.body.email,
                 phone: req.body.phone,
                 isGold: req.body.isGold
             });
             const resultCustomer = await newCustomer.save().then((result) => result).catch((err) => err.message);
 
-            return res.send(_.pick(resultCustomer, ['_id', 'name', 'phone', 'isGold']));
+            return res.status(200).send(_.pick(resultCustomer, ['_id', 'name', 'email', 'phone', 'isGold']));
         }
         else {
             return res.status(400).send("You can't add the provided Customer Because it is already in the Database, try to update it.");
@@ -58,6 +59,7 @@ router.put('/:name', async (req, res) => {
     try {
         const filter = { name: req.params.name };
         const update = {
+            email: req.body.email,
             phone: req.body.phone,
             isGold: req.body.isGold
         };
@@ -67,7 +69,7 @@ router.put('/:name', async (req, res) => {
             return res.status(400).send("Provided Customer is Not in the Database.");
         }
         else {
-            return res.send(_.pick(upCustomer, ['_id', 'name', 'phone', 'isGold']));
+            return res.status(200).send(_.pick(upCustomer, ['_id', 'name', 'email', 'phone', 'isGold']));
         }
     } catch (error) {
         return res.status(500).send('Something failed!');
@@ -83,7 +85,7 @@ router.delete('/:name', async (req, res) => {
             return res.status(400).send("Provided Customer is Not in the Database.");
         }
         else {
-            return res.send(_.pick(result, ['_id', 'name', 'phone', 'isGold']));
+            return res.status(200).send(_.pick(result, ['_id', 'name', 'email', 'phone', 'isGold']));
         }
     }
     catch (error) {
